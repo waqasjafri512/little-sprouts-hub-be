@@ -13,12 +13,29 @@ const initDb = async () => {
         await prisma.announcement.deleteMany();
         await prisma.user.deleteMany();
 
+        console.log('Seeding school...');
+        const school = await prisma.school.create({
+            data: {
+                name: 'Little Sprouts Hub',
+                joinCode: 'LSHUB1'
+            }
+        });
+
+        console.log('Seeding classrooms...');
+        const nursery2A = await prisma.classroom.create({
+            data: {
+                name: 'Nursery 2A',
+                schoolId: school.id
+            }
+        });
+
         console.log('Seeding users...');
         const admin = await prisma.user.create({
             data: {
                 email: 'admin@nursery.com',
                 password: 'admin123',
-                role: 'ADMIN'
+                role: 'ADMIN',
+                schoolId: school.id
             }
         });
 
@@ -26,7 +43,8 @@ const initDb = async () => {
             data: {
                 email: 'parent@nursery.com',
                 password: 'parent123',
-                role: 'PARENT'
+                role: 'PARENT',
+                schoolId: school.id
             }
         });
 
@@ -34,7 +52,8 @@ const initDb = async () => {
             data: {
                 email: 'teacher@nursery.com',
                 password: 'teacher123',
-                role: 'TEACHER'
+                role: 'TEACHER',
+                schoolId: school.id
             }
         });
 
@@ -42,20 +61,22 @@ const initDb = async () => {
         const emma = await prisma.student.create({
             data: {
                 name: 'Emma Johnson',
-                className: 'Nursery 2A',
                 age: '4',
                 parentName: 'Sarah Johnson',
-                parentId: parentUser.id
+                parentId: parentUser.id,
+                schoolId: school.id,
+                classId: nursery2A.id
             }
         });
 
         const liam = await prisma.student.create({
             data: {
                 name: 'Liam Smith',
-                className: 'Nursery 2A',
                 age: '3',
-                parentName: 'Sarah Johnson', // Assuming same parent for demo
-                parentId: parentUser.id
+                parentName: 'Sarah Johnson',
+                parentId: parentUser.id,
+                schoolId: school.id,
+                classId: nursery2A.id
             }
         });
 
@@ -65,31 +86,32 @@ const initDb = async () => {
                 name: 'Ms. Clara',
                 subject: 'Early Years',
                 classes: ['Nursery 2A', 'Reception'],
-                userId: teacherUser.id
+                userId: teacherUser.id,
+                schoolId: school.id
             }
         });
 
         console.log('Seeding attendance for Emma...');
         await prisma.attendance.createMany({
             data: [
-                { studentId: emma.id, status: 'PRESENT', date: new Date(Date.now() - 86400000) },
-                { studentId: emma.id, status: 'PRESENT', date: new Date() }
+                { studentId: emma.id, status: 'PRESENT', date: new Date(Date.now() - 86400000), schoolId: school.id },
+                { studentId: emma.id, status: 'PRESENT', date: new Date(), schoolId: school.id }
             ]
         });
 
         console.log('Seeding fees for Emma...');
         await prisma.fee.createMany({
             data: [
-                { studentId: emma.id, amount: 150, status: 'PENDING', month: 'February 2026' },
-                { studentId: emma.id, amount: 150, status: 'PAID', month: 'January 2026' }
+                { studentId: emma.id, amount: 150, status: 'PENDING', month: 'February 2026', schoolId: school.id },
+                { studentId: emma.id, amount: 150, status: 'PAID', month: 'January 2026', schoolId: school.id }
             ]
         });
 
         console.log('Seeding announcements...');
         await prisma.announcement.createMany({
             data: [
-                { title: 'School Trip', content: 'We are planning a trip to the local farm next Friday.' },
-                { title: 'New Menu', content: 'Our spring menu is now active in the canteen.' }
+                { title: 'School Trip', content: 'We are planning a trip to the local farm next Friday.', schoolId: school.id },
+                { title: 'New Menu', content: 'Our spring menu is now active in the canteen.', schoolId: school.id }
             ]
         });
 
