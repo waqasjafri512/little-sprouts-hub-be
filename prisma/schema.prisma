@@ -7,16 +7,20 @@ datasource db {
 }
 
 model Student {
-  id           String        @id @default(uuid())
-  name         String
-  className    String
-  age          String
-  parentName   String
-  attendance   Attendance[]
-  fees         Fee[]
-  updates      DailyUpdate[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id         String        @id @default(uuid())
+  name       String
+  className  String        @map("class_name")
+  age        String
+  parentName String        @map("parent_name")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+  parentId   String?       @map("parent_id")
+  attendance Attendance[]
+  updates    DailyUpdate[]
+  fees       Fee[]
+  parent     User?         @relation(fields: [parentId], references: [id])
+
+  @@map("students")
 }
 
 model Teacher {
@@ -24,43 +28,78 @@ model Teacher {
   name      String
   subject   String
   classes   String[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  userId    String?  @unique @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@map("teachers")
 }
 
 model Attendance {
   id        String   @id @default(uuid())
+  studentId String   @map("student_id")
   date      DateTime @default(now())
-  status    String   // PRESENT, ABSENT, LEAVE
+  status    String
   student   Student  @relation(fields: [studentId], references: [id])
-  studentId String
+
+  @@map("attendance")
 }
 
 model Fee {
   id        String   @id @default(uuid())
+  studentId String   @map("student_id")
   amount    Float
-  status    String   // PAID, PENDING
+  status    String
   month     String
+  createdAt DateTime @default(now()) @map("created_at")
   student   Student  @relation(fields: [studentId], references: [id])
-  studentId String
-  createdAt DateTime @default(now())
+
+  @@map("fees")
 }
 
 model DailyUpdate {
   id        String   @id @default(uuid())
+  studentId String?  @map("student_id")
   title     String
   content   String
-  type      String   // Activity, Homework, etc.
+  type      String
   date      DateTime @default(now())
   student   Student? @relation(fields: [studentId], references: [id])
-  studentId String?
+
+  @@map("daily_updates")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String?
+  password  String
+  role      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  students  Student[]
+  teacher   Teacher?
+
+  @@map("users")
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  type      String   // Alert, Info
-  read      Boolean  @default(false)
-  date      DateTime @default(now())
+  id      String   @id @default(uuid())
+  title   String
+  content String
+  type    String
+  read    Boolean  @default(false)
+  date    DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model Announcement {
+  id      String   @id @default(uuid())
+  title   String
+  content String
+  date    DateTime @default(now())
+
+  @@map("announcements")
 }
