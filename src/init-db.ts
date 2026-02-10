@@ -12,6 +12,12 @@ const initDb = async () => {
         await prisma.notification.deleteMany();
         await prisma.announcement.deleteMany();
         await prisma.user.deleteMany();
+        // Remove classrooms (children of schools) before deleting schools to satisfy FK constraints
+        await prisma.classroom.deleteMany();
+        // Remove any existing schools to avoid unique constraint conflicts during seeding
+        await prisma.school.deleteMany();
+        // Remove any existing schools to avoid unique constraint conflicts during seeding
+        await prisma.school.deleteMany();
 
         console.log('Seeding school...');
         const school = await prisma.school.create({
